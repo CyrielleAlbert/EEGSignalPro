@@ -22,18 +22,13 @@ def openTXTfile(path):
 def openJSONfile(path):
     return 0
 
-def calculateSimpleSNR(signal):
-    return 0
-
 def alphaRhythmDetection(signal,time,figure):
-    print(len(signal))
     Fe = 512
     nfft = getNextPow2(len(signal))
 
     fft_data = np.fft.fft(signal, n=nfft, axis=0) / (len(signal))
     power_spectral_densities = np.abs(fft_data[0:int(nfft / 2)])
     frequencies = Fe / 2 * np.linspace(0, 1, int(nfft / 2)) 
-    print(frequencies, power_spectral_densities)
     alpha_dsp = []
     alpha_frequencies = []
     all_dsp = []
@@ -53,6 +48,10 @@ def alphaRhythmDetection(signal,time,figure):
     plt.subplot(2,1,2)
     plt.plot(all_frequencies,all_dsp)
 
+def calculateSimpleSNR(signal):
+    mean = np.mean(signal)
+    sd = abs(np.std(signal))
+    return mean/sd
 
 def getNextPow2(num):
     x=2
@@ -95,9 +94,14 @@ def run_neurosity_data():
     eyes_open_t2 = 120*250
     eyes_closed_t3 = 150*250
     for chann in locations :
+        #alphaRhythmDetection(data[chann][eyes_closed_t2:eyes_open_t2],time[eyes_closed_t:eyes_open_t2],3)
+        #alphaRhythmDetection(data[chann][eyes_open_t2:eyes_closed_t3],time[eyes_open_t2:eyes_closed_t3],4)
+        snr = calculateSimpleSNR(data[chann])
+        print("snr {} :".format(chann),snr)
         if chann == 'C3' or chann == 'C4':
             alphaRhythmDetection(data[chann][eyes_closed_t2:eyes_open_t2],time[eyes_closed_t:eyes_open_t2],3)
             alphaRhythmDetection(data[chann][eyes_open_t2:eyes_closed_t3],time[eyes_open_t2:eyes_closed_t3],4)
+
     plt.show()
 
 def run_openS_data():
@@ -123,6 +127,9 @@ def run_openS_data():
     print(eyes_open,eyes_closed)
     for i in range(len(eyes_open)):
         for chann in range(16) :
+            print(data[:,chann])
+            snr = calculateSimpleSNR(data[:,chann])
+            print("snr {} :".format(chann),snr)
             try :
                 alphaRhythmDetection(data[int(eyes_closed[i]*512):int(eyes_open[i+1]*512),chann],time[int(eyes_closed[i]*512):int(eyes_open[i]*512)],i)
             except :
@@ -134,6 +141,7 @@ if __name__ == "__main__":
     #run_neurosity_data()
     run_openS_data()
     
+
 
 
 
